@@ -86,4 +86,28 @@ router.put("/follow/:id", async (req, res) => {
     res.status(400).json(error.message);
   }
 });
+
+router.get("/following/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json({ following: user.following });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/follower/:userId", async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.params.userId);
+    res.status(200).json({ followers: currentUser.followers });
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+});
 export default router;
