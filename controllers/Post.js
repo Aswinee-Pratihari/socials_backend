@@ -3,6 +3,31 @@ import Post from "../models/PostModel.js";
 import User from "../models/UserModel.js";
 import { verifyToken } from "../middleware/TokenVerification.js";
 const router = Router();
+import Multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: "duy63ri0o",
+  api_key: "775933583141363",
+  api_secret: "LERdb0SQ6EzCc-JqSneDQ6jqd0k",
+});
+
+async function handleUpload(file) {
+  const res = await cloudinary.uploader.upload(file, {
+    resource_type: "image",
+  });
+  return res;
+}
+
+const storage = new Multer.memoryStorage();
+const upload = Multer({
+  storage,
+});
+
+function isImage(file) {
+  const mimeType = mime.lookup(file);
+  return mimeType && mimeType.startsWith("image/");
+}
 
 //create a
 router.post("/", verifyToken, async (req, res) => {
@@ -14,6 +39,22 @@ router.post("/", verifyToken, async (req, res) => {
     res.status(200).json(error);
   }
   // res.status(200).json(req.user.user);
+});
+
+//upload photo
+router.post("/upload", upload.single("my_file"), async (req, res) => {
+  try {
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+    const cldRes = await handleUpload(dataURI);
+    res.json(cldRes);
+    // res.json(req.file);
+  } catch (error) {
+    console.log(error);
+    res.send({
+      message: error.message,
+    });
+  }
 });
 
 //update a post
