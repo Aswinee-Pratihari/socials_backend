@@ -143,19 +143,68 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+//post of one user
+// router.get("/user/:userId", async (req, res) => {
+//   try {
+//     const post = await Post.find({ userId: req.params.userId });
+//     res.status(200).json(post);
+//   } catch (error) {
+//     res.status(400).json(error.message);
+//   }
+// });
+
 //post from timeline
+// router.get("/timeline/:userId", async (req, res) => {
+//   try {
+//     const currentUser = await User.findById(req.params.userId);
+
+//     // res.json("currentUser");
+//     const userPosts = await Post.find({ userId: currentUser._id }).sort({
+//       createdAt: -1,
+//     });
+//     const followingPosts = await Promise.all(
+//       currentUser.following.map((friendId) => {
+//         Post.find({ userId: friendId }).sort({ createdAt: -1 });
+//         // res.json(friendId);
+//         // console.log(friendId);
+//       })
+//     );
+//     // res.status(200).json(userPosts.concat(...followingPosts));
+//     res.status(200).json(followingPosts);
+//   } catch (error) {
+//     res.status(400).json(error.message);
+//   }
+// });
+
 router.get("/timeline/:userId", async (req, res) => {
   try {
     const currentUser = await User.findById(req.params.userId);
 
     // res.json("currentUser");
-    const userPosts = await Post.find({ userId: currentUser._id });
-    const followingPosts = await Promise.all(
-      currentUser.following.map((friendId) => {
-        Post.find({ userId: friendId });
-      })
-    );
-    res.status(200).json(userPosts.concat(...followingPosts));
+    const userPosts = await Post.find({ userId: currentUser._id }).sort({
+      createdAt: -1,
+    });
+    const followedUserIds = currentUser.following;
+    const followingPosts = await Post.find({
+      userId: { $in: followedUserIds },
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json(userPosts.concat(followingPosts));
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+});
+//post for pofile
+router.get("/profile/:userId", async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.params.userId);
+
+    // res.json("currentUser");
+    const userPosts = await Post.find({ userId: currentUser._id }).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json(userPosts);
     // res.status(200).json(followingPosts);
   } catch (error) {
     res.status(400).json(error.message);
